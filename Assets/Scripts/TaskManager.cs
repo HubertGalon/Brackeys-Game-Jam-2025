@@ -8,12 +8,21 @@ public class TaskManager : MonoBehaviour
     public NPC[] npcs;
     public Sprite[] taskIcons;
     public TaskObject table; 
+
+    public TaskObject waterMachine;
     
+    public TaskObject stain;
+    private int taskNum;
     private NPC activeNPC; 
     private int currentTask;
     private Coroutine cancelTaskCoroutine; 
     private bool taskAccepted = false; 
     private bool taskCompleted = false; 
+
+
+    public Transform[] stainSpawnPoints;
+    public GameObject stainPrefab;
+    private GameObject currentStain; 
 
     void Update()
     {
@@ -28,12 +37,24 @@ public class TaskManager : MonoBehaviour
             AcceptTask();
         }
 
-        if (taskAccepted && !taskCompleted && table.isPlayerInRange && Input.GeKetyDown(KeyCode.E))
+        if (taskAccepted && !taskCompleted && Input.GetKeyDown(KeyCode.E))
         {
-            CompleteTaskStep();
+            if (taskNum == 0){
+                if (table.isPlayerInRange){
+                    CompleteTaskStep();
+                }
+            }
+            if (taskNum == 1){
+                if (waterMachine.isPlayerInRange){
+                    CompleteTaskStep();
+                }
+            }
+            if (taskNum == 2){
+                if (stain.isPlayerInRange){
+                    FinishTask();
+                }
+            }
         }
-
-
         if (taskCompleted && activeNPC.isPlayerInRange && Input.GetKeyDown(KeyCode.E))
         {
             FinishTask();
@@ -47,7 +68,7 @@ public class TaskManager : MonoBehaviour
         taskCompleted = false;
 
         
-        int taskNum = 1;
+        taskNum = Random.Range(0, 3);
         activeNPC = npcs[Random.Range(0, npcs.Length)]; 
 
         if (activeNPC == null)
@@ -57,7 +78,7 @@ public class TaskManager : MonoBehaviour
         }
 
         Debug.Log("Zadanie przypisane do: " + activeNPC.name);
-        activeNPC.ShowTaskBubble(taskIcons[0]); 
+        activeNPC.ShowTaskBubble(taskIcons[taskNum]); 
     }
 
     void AcceptTask()
@@ -65,20 +86,65 @@ public class TaskManager : MonoBehaviour
         Debug.Log("Gracz zaakceptował zadanie!");
         taskAccepted = true; 
         activeNPC.HideTaskBubble(); 
-        table.SetTaskActive(true, this);
+        switch(taskNum){
+            case 0:{ // jedzenie
+                table.SetTaskActive(true, this);
+            }
+            break;
+            case 1:{ // woda
+                waterMachine.SetTaskActive(true, this);
+            }
+            break;
+            case 2:{ // plamy
+                if (stainSpawnPoints.Length > 0 && stainPrefab != null)
+                {
+                    int randomIndex = Random.Range(0, stainSpawnPoints.Length);
+                    Transform spawnPoint = stainSpawnPoints[randomIndex];
+                    currentStain = Instantiate(stainPrefab, spawnPoint.position, Quaternion.identity);
+                    Vector3 stainPosition = currentStain.transform.position;
+                    stainPosition.z = 0f;
+                    currentStain.transform.position = stainPosition;
+                    stain = currentStain.GetComponent<TaskObject>();
+                    if (stain != null)
+                        {
+                            stain.SetTaskActive(true, this);
+                        }
+                    else
+                        {
+                            Debug.LogError("Błąd: Stworzona plama nie ma komponentu TaskObject!");
+                        }
+                }
+            }
+            break;
+        }
     }
 
     public void CompleteTaskStep()
     {
         Debug.Log("Gracz wykonał interakcję przy stole!");
         taskCompleted = true; 
-        table.SetTaskActive(false, this); 
+        
+        switch(taskNum){
+            case 0:
+                table.SetTaskActive(false, this);
+            break;
+            case 1:
+                waterMachine.SetTaskActive(false, this);
+            break;
+        }
         activeNPC.ShowTaskBubble(taskIcons[5]); 
     }
 
     void FinishTask()
     {
         Debug.Log("Gracz wrócił do NPC i ukończył zadanie!");
+        if (taskNum == 2){
+            stain.SetTaskActive(false, this);
+            if (currentStain != null)
+                {
+                    Destroy(currentStain);
+                }
+        }
         activeNPC.HideTaskBubble();
         hasTask = false;
         taskAccepted = false;

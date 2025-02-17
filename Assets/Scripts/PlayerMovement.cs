@@ -5,10 +5,12 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public Animator animator;
-    private const float speed = 2f;
+    private const float speed = 8f;
     public Rigidbody2D rb;
     private bool facingRight = true;
     Vector2 movement;
+
+    //private NPC activeNPC; 
     void Update()
     {
         movement.x = Input.GetAxisRaw("Horizontal");
@@ -33,4 +35,5 @@ public class PlayerMovement : MonoBehaviour
         animator.SetFloat("speed", Mathf.Abs(movement.x)+Mathf.Abs(movement.y));
         rb.MovePosition(rb.position + movement * speed * Time.deltaTime);
     }
+
 }

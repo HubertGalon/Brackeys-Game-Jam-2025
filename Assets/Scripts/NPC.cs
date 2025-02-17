@@ -9,8 +9,21 @@ public class NPC : MonoBehaviour
     public Image taskIcon;
     public bool isPlayerInRange = false;
 
+    public SpriteRenderer spriteRenderer; 
+    public Sprite[] NPCSprites;
     void Start()
     {
+
+          // Tablica różnych tekstur (spritetów)
+        if (NPCSprites.Length > 0)
+        {
+            int randomIndex = Random.Range(0, NPCSprites.Length); 
+            spriteRenderer.sprite = NPCSprites[randomIndex];
+        }
+        else
+        {
+            Debug.LogError("Brak spritetów w tablicy kidSprites!");
+        }
         taskBubble.SetActive(false); 
     }
 
