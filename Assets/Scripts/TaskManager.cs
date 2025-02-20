@@ -27,10 +27,12 @@ public class TaskManager : MonoBehaviour
 
     private Coroutine timeoutCoroutine;
     public Image currentQuest;
-
+    public ScoreManager scoreManager;
+    public Animator animator;
     void Start()
     {
         currentQuest.enabled = false;
+        animator.SetBool("pizzaTask", false);
     }
     void Update()
     {
@@ -150,9 +152,11 @@ public class TaskManager : MonoBehaviour
         {
             case 0:
                 table.SetTaskActive(false, this);
+                animator.SetBool("pizzaTask", true);
                 break;
             case 1:
                 waterMachine.SetTaskActive(false, this);
+                animator.SetBool("beerTask", true);
                 break;
         }
         currentQuest.sprite = taskIcons[5];
@@ -182,6 +186,9 @@ public class TaskManager : MonoBehaviour
         hasTask = false;
         taskAccepted = false;
         taskCompleted = false;
+        scoreManager.AddScore();
+        animator.SetBool("pizzaTask", false);
+        animator.SetBool("beerTask", false);
     }
 
 
@@ -194,6 +201,7 @@ public class TaskManager : MonoBehaviour
             Debug.Log("Zadanie zostało anulowane, ponieważ nie zostało zaakceptowane na czas!");
             activeNPC.HideTaskBubble();
             hasTask = false;
+            scoreManager.punishScore();
         }
     }
     
@@ -214,7 +222,7 @@ public class TaskManager : MonoBehaviour
                 Destroy(currentStain); 
                 currentStain = null;
             }
-
+            scoreManager.punishScore();
             hasTask = false;
             taskAccepted = false;
             taskCompleted = false;

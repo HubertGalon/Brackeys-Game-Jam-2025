@@ -9,6 +9,7 @@ public class StaminaBar : MonoBehaviour
     private float originalWidth;
     private Vector2 originalPosition;
     public PlayerMovement player;
+    
     void Start()
     {
         originalWidth = staminaBar.sizeDelta.x; 
