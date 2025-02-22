@@ -11,12 +11,12 @@ public class TaskManager : MonoBehaviour
     public TaskObject table;
     public TaskObject waterMachine;
     public TaskObject stain;
-    
+    public TaskObject DJ;
     private int taskNum;
-    private NPC activeNPC;
-    private bool taskAccepted = false;
-    private bool taskCompleted = false;
-
+    public NPC activeNPC;
+    public bool taskAccepted = false;
+    public bool taskCompleted = false;
+    public bool taskFinished = false;
     public Transform[] stainSpawnPoints;
     public GameObject stainPrefab;
     private GameObject currentStain;
@@ -29,6 +29,8 @@ public class TaskManager : MonoBehaviour
     public Image currentQuest;
     public ScoreManager scoreManager;
     public Animator animator;
+    public AudioSource audioSource;
+    public AudioClip[] backgroundMusic;
     void Start()
     {
         currentQuest.enabled = false;
@@ -60,6 +62,10 @@ public class TaskManager : MonoBehaviour
             {
                 FinishTask();
             }
+            else if (taskNum == 3 && DJ.isPlayerInRange)
+            {
+                CompleteTaskStep();
+            }
         }
 
         if (taskCompleted && activeNPC.isPlayerInRange && Input.GetKeyDown(KeyCode.E))
@@ -79,11 +85,12 @@ public class TaskManager : MonoBehaviour
     }
     void AssignRandomTask()
     {
+        taskFinished = false;
         hasTask = true;
         taskAccepted = false;
         taskCompleted = false;
 
-        taskNum = Random.Range(0, 3);
+        taskNum = Random.Range(0, 4);
         activeNPC = npcs[Random.Range(0, npcs.Length)];
 
         if (activeNPC == null)
@@ -94,7 +101,7 @@ public class TaskManager : MonoBehaviour
 
         Debug.Log("Zadanie przypisane do: " + activeNPC.name);
         activeNPC.ShowTaskBubble(taskIcons[taskNum]);
-        cancelTaskCoroutine = StartCoroutine(CancelTaskAfterDelay(5f));
+        cancelTaskCoroutine = StartCoroutine(CancelTaskAfterDelay(3f));
     }
 
     void AcceptTask()
@@ -104,12 +111,13 @@ public class TaskManager : MonoBehaviour
         activeNPC.HideTaskBubble();
         currentQuest.enabled = true;
         currentQuest.sprite = taskIcons[taskNum];
+
         if (cancelTaskCoroutine != null)
         {
             StopCoroutine(cancelTaskCoroutine);
         }
 
-        timeoutCoroutine = StartCoroutine(CancelTaskAfterTimeout(10f));
+        timeoutCoroutine = StartCoroutine(CancelTaskAfterTimeout(3f));
 
         switch (taskNum)
         {
@@ -135,6 +143,9 @@ public class TaskManager : MonoBehaviour
                     }
                 }
                 break;
+            case 3: // DJ
+                DJ.SetTaskActive(true, this);
+                break;
         }
     }
 
@@ -147,7 +158,7 @@ public class TaskManager : MonoBehaviour
         {
             StopCoroutine(timeoutCoroutine);
         }
-
+        timeoutCoroutine = StartCoroutine(CancelTaskAfterTimeout(3f));
         switch (taskNum)
         {
             case 0:
@@ -158,7 +169,17 @@ public class TaskManager : MonoBehaviour
                 waterMachine.SetTaskActive(false, this);
                 animator.SetBool("beerTask", true);
                 break;
+            case 3:
+                DJ.SetTaskActive(false, this);
+                AudioClip newClip;
+                do{
+                    newClip = backgroundMusic[Random.Range(0, backgroundMusic.Length)];
+                } while (audioSource.clip == newClip);
+                audioSource.clip = newClip;
+                audioSource.Play();
+                break;
         }
+        
         currentQuest.sprite = taskIcons[5];
         activeNPC.ShowTaskBubble(taskIcons[5]);
     }
@@ -171,7 +192,7 @@ public class TaskManager : MonoBehaviour
         {
             StopCoroutine(timeoutCoroutine);
         }
-
+        taskFinished = true;
         if (taskNum == 2)
         {
             stain.SetTaskActive(false, this);
@@ -187,6 +208,7 @@ public class TaskManager : MonoBehaviour
         taskAccepted = false;
         taskCompleted = false;
         scoreManager.AddScore();
+        currentQuest.enabled = false;
         animator.SetBool("pizzaTask", false);
         animator.SetBool("beerTask", false);
     }
@@ -202,6 +224,7 @@ public class TaskManager : MonoBehaviour
             activeNPC.HideTaskBubble();
             hasTask = false;
             scoreManager.punishScore();
+            currentQuest.enabled = false;
         }
     }
     
@@ -209,7 +232,7 @@ public class TaskManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        if (!taskCompleted)
+        if (!taskCompleted || !taskFinished)
         {
             Debug.Log("Zadanie zostało anulowane, ponieważ nie zostało wykonane na czas!");
             if (activeNPC != null)
@@ -227,6 +250,9 @@ public class TaskManager : MonoBehaviour
             taskAccepted = false;
             taskCompleted = false;
             activeNPC = null;
+            currentQuest.enabled = false;
+            animator.SetBool("pizzaTask", false);
+            animator.SetBool("beerTask", false);
         }
     }
 }

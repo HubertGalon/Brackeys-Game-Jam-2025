@@ -6,8 +6,8 @@ public class ScoreManager : MonoBehaviour
     public RectTransform scoreBar; 
     public float maxScore = 100f; 
     public float decreaseRate = 1f; 
-    public float increaseAmount = 10f;
-    public float timeMultiplier = 0.005f; 
+    public float increaseAmount = 5f;
+    public float timeMultiplier = 0.5f; 
     public float maxDecreaseRate = 5f;
     public float increaseRateDelay = 10f; 
 
@@ -18,6 +18,7 @@ public class ScoreManager : MonoBehaviour
 
     public Sprite[] scoreSprites;
     public Image ScoreBar;
+    public SceneChanger sceneChanger;
     void Start()
     {
         currentScore = maxScore;
@@ -32,7 +33,7 @@ public class ScoreManager : MonoBehaviour
         if (elapsedTime > increaseRateDelay)
         {
             float difficultyFactor = Mathf.Log(elapsedTime - increaseRateDelay + 1, 10) * timeMultiplier;
-            decreaseRate += difficultyFactor * Time.deltaTime *2f;
+            decreaseRate += difficultyFactor * Time.deltaTime *3f;
             decreaseRate = Mathf.Min(decreaseRate, maxDecreaseRate); 
         }
 
@@ -64,7 +65,7 @@ public class ScoreManager : MonoBehaviour
 
     public void AddScore()
     {
-        currentScore += increaseAmount*(Mathf.Abs(decreaseRate));
+        currentScore += increaseAmount*(Mathf.Abs(decreaseRate/2));
         currentScore = Mathf.Clamp(currentScore, 0, maxScore);
     }
 
@@ -75,7 +76,6 @@ public class ScoreManager : MonoBehaviour
     }
     void GameOver()
     {
-        Debug.Log("Koniec gry! Score spadł do zera.");
-        Time.timeScale = 0;
+        sceneChanger.gameOver();
     }
 }

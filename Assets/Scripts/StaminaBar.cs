@@ -5,7 +5,7 @@ using UnityEngine;
 public class StaminaBar : MonoBehaviour
 {
     public RectTransform staminaBar; 
-    public float maxStamina = 3f;
+    public float maxStamina = 2f;
     private float originalWidth;
     private Vector2 originalPosition;
     public PlayerMovement player;

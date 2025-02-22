@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
     private bool facingRight = true;
     Vector2 movement;
 
-    private float sprintTime = 3f; 
+    private float sprintTime = 2f; 
     public float currentSprintTime; 
     private bool isSprinting = false;
     private bool isExhausted = false; 
